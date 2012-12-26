@@ -5,12 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
-import java.text.SimpleDateFormat;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -161,9 +159,10 @@ public class MainWindow {
 		btnDictFileSelect.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-				String[] filterNames = new String[] { "Text Files", "Dict Files",
-						"All Files (*)" };
-				String[] filterExtensions = new String[] { "*.txt", "*.dic", "*" };
+				String[] filterNames = new String[] { "Dict Files",
+						"Text Files", "All Files (*)" };
+				String[] filterExtensions = new String[] { "*.dic", "*.txt",
+						"*" };
 				dialog.setFilterNames(filterNames);
 				dialog.setFilterExtensions(filterExtensions);
 				dialog.setFileName("dictionary.txt");
@@ -178,9 +177,12 @@ public class MainWindow {
 		final Button btnStop = new Button(shell, SWT.PUSH);
 		final List listWordsFound = new List(shell, SWT.BORDER | SWT.SINGLE
 				| SWT.V_SCROLL);
-		final Text textComboAttempted = new Text(shell, SWT.READ_ONLY | SWT.BORDER);
-		final Text textMatchesFound = new Text(shell, SWT.READ_ONLY | SWT.BORDER);
-		Text textSearchTime = new Text(shell, SWT.READ_ONLY | SWT.BORDER);
+		final Text textDictWords = new Text(shell, SWT.READ_ONLY | SWT.BORDER);
+		final Text textComboAttempted = new Text(shell, SWT.READ_ONLY
+				| SWT.BORDER);
+		final Text textMatchesFound = new Text(shell, SWT.READ_ONLY
+				| SWT.BORDER);
+		final Text textSearchTime = new Text(shell, SWT.READ_ONLY | SWT.BORDER);
 
 		btnStart.setText("Start");
 		btnStart.addSelectionListener(new SelectionAdapter() {
@@ -235,6 +237,8 @@ public class MainWindow {
 				btnStop.setEnabled(true);
 				listWordsFound.removeAll();
 
+				Date dateStart = new Date();
+
 				BufferedReader br = null;
 				HashSet<String> hsDict = new HashSet<String>();
 				try {
@@ -267,8 +271,21 @@ public class MainWindow {
 						listWordsFound.add(sIter);
 				}
 
+				textDictWords.setText(String.valueOf(hsDict.size()));
 				textComboAttempted.setText(String.valueOf(hsCombos.size()));
-				textMatchesFound.setText(String.valueOf(listWordsFound.getItemCount()));
+				textMatchesFound.setText(String.valueOf(listWordsFound
+						.getItemCount()));
+
+				Date dateEnd = new Date();
+				long diffMilliseconds = dateEnd.getTime() - dateStart.getTime();
+				textSearchTime.setText(String.valueOf(diffMilliseconds) + " ms");
+
+				textLetters.setEnabled(true);
+				textDictFile.setEnabled(true);
+				btnStart.setEnabled(true);
+				textMin.setEnabled(true);
+				textMax.setEnabled(true);
+				btnStop.setEnabled(false);
 			}
 		});
 		btnStop.setText("Stop");
@@ -287,9 +304,13 @@ public class MainWindow {
 			}
 		});
 
+		Label labelDictWords = new Label(shell, SWT.NONE);
+		labelDictWords.setText("Dictionary Words:");
+		textDictWords.setText("0");
+
 		Label labelComboAttempted = new Label(shell, SWT.NONE);
 		labelComboAttempted.setText("Combo Attempted:");
-		textComboAttempted.setText("0 of 0");
+		textComboAttempted.setText("0");
 
 		Label labelMatchesFound = new Label(shell, SWT.NONE);
 		labelMatchesFound.setText("Matches Found:");
@@ -297,9 +318,10 @@ public class MainWindow {
 
 		Label labelSearchTime = new Label(shell, SWT.NONE);
 		labelSearchTime.setText("Search Time:");
-		final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-		Date date = new Date();
-		textSearchTime.setText(timeFormat.format(date));
+		Date dateStart = new Date();
+		Date dateEnd = new Date();
+		long diffSeconds = dateEnd.getTime() - dateStart.getTime();
+		textSearchTime.setText(String.valueOf(diffSeconds));
 
 		listWordsFound.add("none");
 		listWordsFound.setBounds(0, 0, 1200, 520);
@@ -374,9 +396,22 @@ public class MainWindow {
 
 						String strResults[] = listWordsFound.getItems();
 						String strMessage = "Mrs. Heidi,\n\n";
+						strMessage += "Here are my homework results.\n\n";
+
+						strMessage += "Letters Used: " + textLetters.getText() + "\n";
+						strMessage += "Matches Found: " + textMatchesFound.getText() + "\n";
+						strMessage += "Combinations Attempted: " + textComboAttempted.getText() + "\n";
+						strMessage += "Words Searched: " + textDictWords.getText() + "\n";
+						strMessage += "Minimum: " + textMin.getText() + "\n";
+						strMessage += "Maximum: " + textMax.getText() + "\n";
+						strMessage += "Search Time: " + textSearchTime.getText() + "\n";
+						strMessage += "\n";
+
 						for (int i = 0; i < listWordsFound.getItemCount(); i++) {
 							strMessage += strResults[i] + "\n";
 						}
+						
+						System.out.println(strMessage);
 
 						@SuppressWarnings("serial")
 						Properties props = new Properties() {
@@ -480,6 +515,15 @@ public class MainWindow {
 
 		data = new FormData();
 		data.top = new FormAttachment(btnStart, 8);
+		labelDictWords.setLayoutData(data);
+		data = new FormData();
+		data.left = new FormAttachment(labelDictWords, 8);
+		data.top = new FormAttachment(labelDictWords, 0, SWT.TOP);
+		data.width = rect.width / 4;
+		textDictWords.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(labelDictWords, 8);
 		labelComboAttempted.setLayoutData(data);
 		data = new FormData();
 		data.left = new FormAttachment(labelComboAttempted, 8);
